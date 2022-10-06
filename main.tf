@@ -40,7 +40,7 @@ resource "aws_route_table" "production_route_table" {
 resource "aws_subnet" "production_subnet" {
   vpc_id            = aws_vpc.production_vpc.id
   cidr_block        = "10.0.1.0/24"
-  availability_zproduction_ip = "us-east-1a"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "production_subnet"
@@ -102,7 +102,7 @@ resource "aws_network_interface" "production_nic" {
 }
 
 #create elastic ip to attach to instance
-resource "aws_eip" "production_ip" {
+resource "aws_eip" "one" {
   vpc                       = true
   network_interface         = aws_network_interface.production_nic.id
   associate_with_private_ip = "10.0.1.49"
@@ -110,7 +110,7 @@ resource "aws_eip" "production_ip" {
 }
 
 output "server_public_ip" {
-  value = aws_eip.production_ip.public_ip
+  value = aws_eip.one.public_ip
 }
 
 #create instance
@@ -125,8 +125,38 @@ resource "aws_instance" "web-server-instance" {
     network_interface_id = aws_network_interface.production_nic.id
   }
 
+  user_data = <<-EOF
+                #!bin/bash
+                sudo apt-get update -y
+                sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+                curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+                curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+                sudo apt-get update -y
+                sudo apt install caddy
+                sudo apt install docker.io -y
+                sudo apt install nodejs -y
+                sudo apt install npm -y
+                sudo su
+                cd ~
+                git clone https://github.com/ahmedraufofficial/terraform.git
+                cd terraform/web-server/
+                sudo docker build . -t web-server
+                sudo docker run -d --rm -p 3000:3000 web-server
+                sudo echo lb 2 >> views/index.ejs
+                sudo docker build . -t web-server2
+                sudo docker run -d --rm -p 3001:3000 web-server2
+                sleep 40
+                cd ~
+                sudo touch /var/log/caddy/caddy_access.log
+                echo -en '.nip.io { \nlog { \noutput file /var/log/caddy/caddy_access.log \n} \nreverse_proxy / localhost:3000 localhost:3001 { \nlb_policy round_robin \n}\n}' > Caddyfile
+                sudo sed -i "1s/^/$(curl http://checkip.amazonaws.com)/" Caddyfile 
+                sleep 10
+                sudo caddy stop
+                sudo caddy start
+                EOF
+
   tags = {
-    Name = "production_instance"
+    Name = "production"
   }
 }
 
