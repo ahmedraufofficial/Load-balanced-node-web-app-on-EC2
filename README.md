@@ -59,7 +59,9 @@ Computing and Open-source tools used in the project -
  - Updating web servers on remote server after a git pull
 
 ## Deployment Comparison
-Both Type 1 and Type 2 execute the same terraform file, however in Type 2 we can update the terraform script, the web app and thus ease in the deployment while viewing logs at the same time. Moreover, we can create specific users with permissions to run jobs as well.
+In the Type 1 deployment, we are utilizing bash scripts working with Terraform, this is a manual process and thus we have to execute the bash script on the OS. This is a one-time process and thus we have to wait for the instance to be launched and initialized. Once the instance is up and running, we can access the web app by appending .nip.io to the public IP of the instance.
+
+When talking about the Type 2 deployment, it utilizes Jenkins to automate the process. We have to run the pipeline once and Jenkins will take care of the rest. It will pull the updated repository from Github, update the web app on remote server and execute the .tf script in the pipeline. This is a continuous process and thus we don't have to wait for the instance to be launched and initialized. Jekins also logs any existing error that occurs withing a stage of a pipeline. Once the pipeline is executed, we can access the web app by appending .nip.io to the public IP of the instance.
 
 ## Proposed Enhancements
 
