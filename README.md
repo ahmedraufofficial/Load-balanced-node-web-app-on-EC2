@@ -38,7 +38,7 @@ Computing and Open-source tools used in the project -
  9. Once the page is refreshed, Caddy web server will follow its **round robin - load balance** policy and thus forward the request to the other container.
 
 ### Type 2
- 1. Go to [Jenkins URL](http://ec2-54-166-165-207.compute-1.amazonaws.com:8080/) .
+ 1. Go to [Jenkins URL](http://ec2-52-207-215-44.compute-1.amazonaws.com:8080/) .
  2. A user with read and build jobs only permissions has been created *username* - *test* and *password* - *test123* for testing purposes.
  3. Once signed in, check in **'Status'** to view all logs per stage in pipeline.
  4. We are also doing a **git pull** on the web app directory, and **re-adding the docker containers**.
